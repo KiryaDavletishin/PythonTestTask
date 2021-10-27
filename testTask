@@ -1,0 +1,144 @@
+#блок импорта
+import sqlite3 as data
+import os
+import random
+#блок глобальных переменных
+#блок функций
+
+def Menu():
+    print("Choose an action")
+    print("1 Add data")
+    print("2 Read data")
+
+def MenuRead():
+    print("Choose an action")
+    print("1 Read Matrix from file")
+    print("2 Read Matrix from Database")
+
+def MenuWrite():
+    print("Choose an action")
+    print("1 Add new Matrix")
+    print("2 Write Matrix to file")
+    print("3 Write Matrix to Database")
+
+
+def MenuAction():
+    print("Choose an action")
+    print("1 Summa Matrix")
+    print("2 Difference Matrix")
+    print("3 Multiplication by a Number")
+    print("4 Multiplication Matrix")
+    print("5 Exponentiation Matrix")
+    print("6 Transporting Matrix")
+    print("7 Write the Matrix in the File")
+
+def setMatrixSize():
+    string = input("Enter the matrix size ")
+    listSize = string.split()
+    listSize = [int(listSize[0]), int(listSize[1])]
+    return listSize
+
+def StringListToInt(list1):
+    if isinstance(list1, list):
+        for index in range(len(list1)):
+            list1[index] = int(list1[index])
+    return list1
+
+def nullList(size2):
+    list1 = [0 for i in range(0, size2, 1)]
+    return list1
+
+def setMatrixIndex(size1, size2):
+    matrix = []
+    for counterLine in range(size1):
+        string = input(f"Enter though a space {size2} number ")
+        ListIndex = string.split()
+        if len(ListIndex) == size2:
+            try:
+                matrix.append(StringListToInt(ListIndex))
+            except ValueError:
+                matrix.append(nullList(size2))
+        else:
+            print("Error number values")
+            matrix.append(nullList(size2))
+    return matrix
+
+#блок классов
+class Matrix:
+
+    def __init__(self):
+        self.line = 0
+        self.column = 0
+        self.matrix = []
+
+    def showMatrix(self):
+        for index in self.matrix:
+            print(index)
+
+    def __compareSize(self, object):
+        if self.line == object.line and self.column == object.column: return True
+        else: return False
+
+    def __add__(self, object):
+        if isinstance(object, Matrix) and self.__compareSize(object):
+            summaList = [[self.matrix[i][j]+object.matrix[i][j] for j in range(self.column)] for i in range(self.line)]
+        return summaList
+
+    def __sub__(self, object):
+        if isinstance(object, Matrix) and self.__compareSize(object):
+            differenceList = [[self.matrix[i][j]-object.matrix[i][j] for j in range(self.column)] for i in range(self.line)]
+        return differenceList
+
+    def __mul__(self, number):
+        multiplicationList = [[self.matrix[i][j] * number for j in range(self.column)] for i in range(self.line)]
+        return multiplicationList
+
+    def transprocessingMatrix(self):
+        transprocessingList = [[self.matrix[j][i] for j in range(self.column)] for i in range(self.line)]
+        self.matrix = transprocessingList
+
+    def __mul__(self, object: object):
+        if self.column == object.line and isinstance(object, Matrix):
+            multiplicationList = [[0 for j in range(object.column)] for i in range(self.line)]
+            for i in range(self.line):
+                for j in range(self.column):
+                    for k in range(object.line):
+                        multiplicationList[i][j] += self.matrix[i][k] * object.matrix[k][j]
+        return multiplicationList
+
+    def writeMatrixatFile(self):
+        name = f"{random.randint(0,50)}{random.randint(0,50)}"
+        try:
+            with open(f"File/{name}.txt", "w") as file:
+                for i in range(self.line):
+                    for j in range(self.column):
+                        file.write(str(self.matrix[i][j]) + " ")
+                    file.write("\n")
+        except FileNotFoundError:
+            os.mkdir("File")
+
+    def readMatrixFromFile(self):
+        name = input("Enter file's name")
+        with open(f"File/{name}.txt") as file:
+            for line in file:
+                self.matrix.append(StringListToInt(line.split()))
+                self.column = len(line.split())
+                self.line +=1
+
+    def deleteFile(self):
+        name = input("Enter file's name")
+        os.remove(f"File/{name}.txt")
+
+    def addDataBase(self):
+        with data.connect("Matrix.db") as table:
+            cur = table.cursor()
+            cur.execute("""CREATE TABLE IF NOT EXISTS matrix(
+            matrix_id INTEGER PRIMARY KEY,
+            line INTEGER,
+            column INTEGER,
+            string1 TEXT,
+            string2 TEXT,
+            string3 TEXT
+            )""")
+            cur.execute(f"""INSERT INTO matrix(line, column, string1) VALUES({self.line},{self.column})
+            """)
